@@ -1,0 +1,35 @@
+@font-face {
+  font-family: "Roboto";
+  src: url("fonts/Roboto-Regular.tff");
+}
+
+body {
+  background-image: url("images/background.jpg");
+  font-family: Roboto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* use 100% to place footer on bottom */
+  margin: 0;
+}
+
+main {
+  flex: 1; /* allows the main content to take available space */
+  margin: 0.5rem;
+}
+
+nav {
+  margin: 0.5rem;
+}
+
+footer {
+  background-color: rgb(124, 168, 252);
+  opacity: 0.8;
+  font-family: Roboto;
+  padding-left: 0.5rem;
+}
+
+#install-button {
+  padding: 0.5em 1em;
+  margin: 1em auto;
+  width: auto;
+}
