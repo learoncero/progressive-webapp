@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>My first PWA with Service Worker</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="manifest" href="app.webmanifest" />
+    <meta name="viewport" content="initial-scale=1" />
+    <script src="./app.js"></script>
+    <script src="./installer.js"></script>
+  </head>
+  <body>
+    <h1>Hello Service Worker!</h1>
+    <button id="test1">Network Only</button>
+    <button id="test2">Network First</button>
+    <button id="test3">Cache First</button>
+    <button id="test4">Cache First Extended</button>
+    <button id="test5">Stale While Revalidate</button>
+    <button id="test6">Cache Only</button>
+    <div id="result"><h3>Responses</h3></div>
+    <div style="padding: 2rem"></div>
+    <button id="install">Install this app</button>
+  </body>
+</html>
