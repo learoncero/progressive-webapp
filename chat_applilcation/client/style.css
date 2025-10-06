@@ -22,14 +22,13 @@ nav {
 }
 
 footer {
-  background-color: rgb(124, 168, 252);
-  opacity: 0.8;
+  background-color: #034788dc;
   font-family: Roboto;
   padding-left: 0.5rem;
 }
 
 header {
-  background-color: #0061bd;
+  background-color: #034788dc;
   color: white;
   text-align: center;
   padding: 2rem 0;
@@ -54,6 +53,24 @@ h3 {
   font-size: 1.4rem;
   margin-bottom: 1rem;
   padding-bottom: 0.3rem;
+}
+
+button {
+  background-color: #0061bd; /* deep blue */
+  color: white;
+  border: none;
+  padding: 0.5em 1em; /* smaller than speech bubble padding */
+  border-radius: 12px; /* more rounded than bubble */
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+  background-color: #004a8f;
+  transform: translateY(-2px);
 }
 
 .conversation-list {
@@ -98,13 +115,12 @@ h3 {
 
 .speech-bubble {
   position: relative;
-  background: #0061bd;
-  color: white;
-  padding: 10px 14px;
+  background: #f0f4f8;
+  color: black;
+  padding: 0.8em 1em;
   border-radius: 0.4em;
   max-width: 70%;
   word-wrap: break-word;
-  max-width: 25%;
 }
 
 .speech-bubble:after {
@@ -115,7 +131,7 @@ h3 {
   width: 0;
   height: 0;
   border: 20px solid transparent;
-  border-top-color: #0061bd;
+  border-top-color: #f0f4f8;
   border-bottom: 0;
   border-left: 0;
   margin-left: -10px;
@@ -128,14 +144,32 @@ h3 {
   margin: 20px 0;
 }
 
-#install-button {
-  background-color: #0061bd;
-  color: white;
-  border: none;
-  padding: 1em 2em;
-  border-radius: 5px;
-  cursor: pointer;
+.user-filter-container {
+  margin-bottom: 1rem;
+  align-content: start;
+}
+
+.filter-input {
+  padding: 0.5em;
   font-size: 1rem;
-  transition: background-color 0.3s;
-  width: auto;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  width: 80%;
+  max-width: 300px;
+  display: block;
+  margin: 0 auto;
+}
+
+.message-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5em; /* space between image and bubble */
+  margin-bottom: 0.5em; /* space between messages */
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }

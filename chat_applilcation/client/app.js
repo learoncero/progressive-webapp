@@ -44,31 +44,58 @@ function renderConversations(conversations) {
   const content = document.getElementById("content");
   content.innerHTML = "<h2>Conversations</h2>";
 
-  if (!conversations.length) {
-    content.innerHTML += "<p>No conversations found.</p>";
-    return;
-  }
+  const userFilterContainer = document.createElement("div");
+  userFilterContainer.classList.add("user-filter-container");
+
+  const userInputFilter = document.createElement("input");
+  userInputFilter.type = "text";
+  userInputFilter.placeholder = "Filter by user name...";
+  userInputFilter.classList.add("filter-input");
+
+  userFilterContainer.appendChild(userInputFilter);
+  content.appendChild(userFilterContainer);
 
   const conversationList = document.createElement("ul");
   conversationList.classList.add("conversation-list");
+  content.appendChild(conversationList);
 
-  for (const conversation of conversations) {
-    const conversationListElement = document.createElement("li");
-    conversationListElement.classList.add("conversation-item");
-    conversationListElement.innerHTML = `
-      <div class="conversation-info">
-        <strong>Conversation #${conversation.id}</strong><br>
-        <span>${conversation.participants.join(", ")}</span>
-      </div>
-    `;
-    conversationListElement.style.cursor = "pointer";
-    conversationListElement.addEventListener("click", () =>
-      openConversation(conversation.id)
+  console.log(content.innerHTML);
+
+  function updateList(filterText = "") {
+    conversationList.innerHTML = ""; // clear list
+    const filtered = conversations.filter((conv) =>
+      conv.participants.some((p) =>
+        p.toLowerCase().includes(filterText.toLowerCase())
+      )
     );
-    conversationList.appendChild(conversationListElement);
+
+    if (filtered.length === 0) {
+      conversationList.innerHTML = "<p>No conversations found.</p>";
+      return;
+    }
+
+    for (const conversation of filtered) {
+      const conversationListElement = document.createElement("li");
+      conversationListElement.classList.add("conversation-item");
+      conversationListElement.innerHTML = `
+        <div class="conversation-info">
+          <strong>Conversation #${conversation.id}</strong><br>
+          <span>${conversation.participants.join(", ")}</span>
+        </div>
+      `;
+      conversationListElement.style.cursor = "pointer";
+      conversationListElement.addEventListener("click", () =>
+        openConversation(conversation.id)
+      );
+      conversationList.appendChild(conversationListElement);
+    }
   }
 
-  content.appendChild(conversationList);
+  updateList();
+
+  userInputFilter.addEventListener("input", (e) => {
+    updateList(e.target.value);
+  });
 }
 
 async function openConversation(conversationId) {
@@ -89,7 +116,6 @@ async function openConversation(conversationId) {
   });
 
   const messages = await response.json();
-  console.log(messages);
 
   renderMessages(conversationId, messages);
 }
@@ -102,10 +128,26 @@ function renderMessages(conversationId, messages) {
   messagesContainer.classList.add("messages-container");
 
   for (const message of messages) {
+    // Container for image + bubble
+    const messageWrapper = document.createElement("div");
+    messageWrapper.classList.add("message-wrapper");
+
+    // User image
+    const userImg = document.createElement("img");
+    userImg.src = `/images/users/${message.from}.jpg`;
+    userImg.alt = message.from;
+    userImg.classList.add("user-avatar");
+
+    // Bubble
     const messageElement = document.createElement("div");
     messageElement.classList.add("speech-bubble");
-    messageElement.textContent = `${message.from}: ${message.message}`;
-    messagesContainer.appendChild(messageElement);
+    messageElement.textContent = message.message;
+
+    // Append image and bubble to wrapper
+    messageWrapper.appendChild(userImg);
+    messageWrapper.appendChild(messageElement);
+
+    messagesContainer.appendChild(messageWrapper);
   }
 
   content.appendChild(messagesContainer);

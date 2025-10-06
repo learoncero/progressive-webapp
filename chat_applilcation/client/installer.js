@@ -13,8 +13,6 @@ window.addEventListener("beforeinstallprompt", (e) => {
   deferredPrompt = e;
   // show button
   const installBtn = document.querySelector("#install-button");
-  console.log("beforeinstallprompt fired");
-  console.log("installBtn", installBtn);
   installBtn.removeAttribute("hidden");
 });
 
@@ -26,8 +24,6 @@ async function installApp() {
     // hide the install button
     const installBtn = document.querySelector("#install-button");
     installBtn.setAttribute("hidden", "");
-    console.log("Install button clicked");
-    console.log("installBtn", installBtn);
     // document.querySelector("#install-button").setAttribute("hidden", "");
   }
 }

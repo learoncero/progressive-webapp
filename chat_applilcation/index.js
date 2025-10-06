@@ -33,7 +33,11 @@ const conversations = [
     id: 1,
     participants: ["daniel", "guenther"],
     messages: [
-      { from: "daniel", message: "Hello Günther!" },
+      {
+        from: "daniel",
+        message:
+          "Hello Günther!asdfsdafasdf Hello Günther!asdfsdafasdf Hello Günther!asdfsdafasdf Hello Günther!asdfsdafasdfHello Günther!asdfsdafasdf",
+      },
       { from: "guenther", message: "Hello Daniel!" },
     ],
   },
@@ -61,6 +65,14 @@ const conversations = [
       { from: "franz", message: "Hello Daniel!" },
     ],
   },
+  // {
+  //   id: 5,
+  //   participants: ["lea", "franz"],
+  //   messages: [
+  //     { from: "lea", message: "Hello Franz!" },
+  //     { from: "franz", message: "Hello Lea!" },
+  //   ],
+  // },
 ];
 
 var newMessages = 0;
