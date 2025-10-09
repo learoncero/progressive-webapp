@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>My first PWA with Service Worker</title>
+    <link rel="icon" href="favicon.ico" />
+    <link rel="manifest" href="app.webmanifest" />
+    <meta name="viewport" content="initial-scale=1" />
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./installer.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav><a href="/">Home</a></nav>
+    <main id="content">
+      <div style="display: flex; flex-direction: column; gap: 4rem">
+        <div>
+          <button id="increaseBadgeBtn">Increase Badge Counter</button>
+          <button id="clearBadgeBtn">Clear Badge Counter</button>
+        </div>
+
+        <div>
+          <button id="openFileBtn">Open File</button>
+          <textarea id="fileContentArea"></textarea>
+          <button id="saveFileBtn">Save File</button>
+          <button id="showFolderBtn">Show Folder</button>
+        </div>
+
+        <div>
+          <button id="saveOPFSFileBtn">Save OPFS File</button>
+          <button id="openOPFSFileBtn">Open OPFS File</button>
+          <button id="showOPFSFolderBtn">Show OPFS Folder</button>
+        </div>
+
+        <div>
+          <button id="initDbBtn">Init DB</button>
+          <button id="writeDbBtn">Write DB</button>
+          <button id="extendDbBtn">Extend DB</button>
+          <button id="updateDbBtn">Update DB</button>
+          <button id="getDbByIdBtn">Get DB by ID</button>
+          <button id="getDbByNameIndexBtn">Get DB by Name Index</button>
+          <button id="getDbByCursorBtn">Get DB by Cursor</button>
+          <button id="deleteEntryIdZeroBtn">Delete Entry with ID zero</button>
+        </div>
+      </div>
+    </main>
+    <button id="install" hidden>Install this App</button>
+    <footer>Status <label id="status"></label></footer>
+  </body>
+</html>
