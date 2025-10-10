@@ -1,159 +1,106 @@
-// Service worker
+import {
+  fetchConversations,
+  fetchMessages,
+  sendMessage,
+} from "./js/api/chatApi.js";
+import { initConnectionStatus } from "./js/services/connectionService.js";
+import { initInstaller } from "./js/services/installer.js";
+import { renderConversationList } from "./ui/conversationList.js";
+import { renderConversationView } from "./ui/conversationView.js";
+
+const LOGGED_IN_USER = "manuel";
+
+// Register service worker
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js");
 }
 
-// Online/Offline
 document.addEventListener("DOMContentLoaded", () => {
-  // check initial if online
-  document.querySelector("#status").textContent = navigator.onLine
-    ? "online"
-    : "offline";
-
-  window.addEventListener("online", handleConnection);
-  window.addEventListener("offline", handleConnection);
-
-  loadAllConversations();
+  initInstaller();
+  initConnectionStatus();
+  loadConversations().then(() => {
+    restoreLastChatId();
+  });
 });
 
-function handleConnection(event) {
-  document.querySelector("#status").textContent = event.type;
-}
+// Load list of conversations
+async function loadConversations() {
+  const loadingText = document.getElementById("loading-text-conversations");
+  const listContainer = document.getElementById("conversation-list-container");
+  const viewContainer = document.getElementById("conversation-view-container");
 
-// Chat App Logic
-async function loadAllConversations() {
-  const content = document.getElementById("content");
-  content.innerHTML = "<p>Loading conversations...</p>";
+  // Show conversation list, hide view
+  listContainer.hidden = false;
+  viewContainer.hidden = true;
 
-  const response = await fetch("/conversations").catch((error) => {
-    console.error("Fetch all conversations failed:", error);
-    content.innerHTML = "<p>Failed to load conversations.</p>";
-  });
+  loadingText.hidden = false;
 
-  if (!response || !response.ok) {
-    content.innerHTML = "<p>Failed to load conversations.</p>";
-    return;
+  try {
+    const conversations = await fetchConversations(LOGGED_IN_USER);
+    renderConversationList(conversations, openConversation);
+  } catch (err) {
+    console.error(err);
+    loadingText.textContent = "Failed to load conversations.";
+  } finally {
+    loadingText.hidden = true;
   }
-
-  const conversations = await response.json();
-
-  renderConversations(conversations);
 }
 
-function renderConversations(conversations) {
-  const content = document.getElementById("content");
-  content.innerHTML = "<h2>Conversations</h2>";
-
-  const userFilterContainer = document.createElement("div");
-  userFilterContainer.classList.add("user-filter-container");
-
-  const userInputFilter = document.createElement("input");
-  userInputFilter.type = "text";
-  userInputFilter.placeholder = "Filter by user name...";
-  userInputFilter.classList.add("filter-input");
-
-  userFilterContainer.appendChild(userInputFilter);
-  content.appendChild(userFilterContainer);
-
-  const conversationList = document.createElement("ul");
-  conversationList.classList.add("conversation-list");
-  content.appendChild(conversationList);
-
-  console.log(content.innerHTML);
-
-  function updateList(filterText = "") {
-    conversationList.innerHTML = ""; // clear list
-    const filtered = conversations.filter((conv) =>
-      conv.participants.some((p) =>
-        p.toLowerCase().includes(filterText.toLowerCase())
-      )
-    );
-
-    if (filtered.length === 0) {
-      conversationList.innerHTML = "<p>No conversations found.</p>";
-      return;
-    }
-
-    for (const conversation of filtered) {
-      const conversationListElement = document.createElement("li");
-      conversationListElement.classList.add("conversation-item");
-      conversationListElement.innerHTML = `
-        <div class="conversation-info">
-          <strong>Conversation #${conversation.id}</strong><br>
-          <span>${conversation.participants.join(", ")}</span>
-        </div>
-      `;
-      conversationListElement.style.cursor = "pointer";
-      conversationListElement.addEventListener("click", () =>
-        openConversation(conversation.id)
-      );
-      conversationList.appendChild(conversationListElement);
-    }
-  }
-
-  updateList();
-
-  userInputFilter.addEventListener("input", (e) => {
-    updateList(e.target.value);
-  });
-}
-
+// open a specific conversation
 async function openConversation(conversationId) {
-  const content = document.getElementById("content");
+  localStorage.setItem("lastChatId", conversationId);
 
-  if (!content) {
-    return;
+  const loadingText = document.getElementById("loading-text-messages");
+  const listContainer = document.getElementById("conversation-list-container");
+  const viewContainer = document.getElementById("conversation-view-container");
+
+  // Hide conversation list, show conversation view
+  listContainer.hidden = true;
+  viewContainer.hidden = false;
+
+  loadingText.hidden = false;
+
+  try {
+    const messages = await fetchMessages(conversationId);
+    renderConversationView(conversationId, messages, loadConversations);
+
+    // send message functionality
+    const sendButton = document.getElementById("send-message-button");
+    const messageInput = document.getElementById("send-message-input");
+
+    if (sendButton && messageInput) {
+      sendButton.onclick = async () => {
+        const text = messageInput.value.trim();
+        console.log("Sending message:", text);
+        if (!text) return;
+
+        // send message via API
+        try {
+          await sendMessage(conversationId, LOGGED_IN_USER, text);
+
+          // append message to view without refetching
+          messages.push({ from: LOGGED_IN_USER, message: text });
+          renderConversationView(conversationId, messages, loadConversations);
+
+          messageInput.value = "";
+        } catch (err) {
+          console.error("Failed to send message:", err);
+          alert("Failed to send message.");
+        }
+      };
+    }
+  } catch (err) {
+    console.error(err);
+    loadingText.textContent = "Failed to load messages.";
+  } finally {
+    loadingText.hidden = true;
   }
-
-  // localStorage.setItem("lastChatId", conversationId);
-  content.innerHTML = `<p>Loading conversation #${conversationId}...</p>`;
-
-  const response = await fetch(
-    `/conversations/${conversationId}/messages`
-  ).catch((error) => {
-    console.error("Fetch all conversations failed:", error);
-    content.innerHTML = "<p>Failed to load conversation.</p>";
-  });
-
-  const messages = await response.json();
-
-  renderMessages(conversationId, messages);
 }
 
-function renderMessages(conversationId, messages) {
-  const content = document.getElementById("content");
-  content.innerHTML = "<h3>Conversation " + conversationId + "</h3>";
-
-  const messagesContainer = document.createElement("div");
-  messagesContainer.classList.add("messages-container");
-
-  for (const message of messages) {
-    // Container for image + bubble
-    const messageWrapper = document.createElement("div");
-    messageWrapper.classList.add("message-wrapper");
-
-    // User image
-    const userImg = document.createElement("img");
-    userImg.src = `/images/users/${message.from}.jpg`;
-    userImg.alt = message.from;
-    userImg.classList.add("user-avatar");
-
-    // Bubble
-    const messageElement = document.createElement("div");
-    messageElement.classList.add("speech-bubble");
-    messageElement.textContent = message.message;
-
-    // Append image and bubble to wrapper
-    messageWrapper.appendChild(userImg);
-    messageWrapper.appendChild(messageElement);
-
-    messagesContainer.appendChild(messageWrapper);
+// restore last chat on startup
+function restoreLastChatId() {
+  const lastChatId = localStorage.getItem("lastChatId");
+  if (lastChatId) {
+    openConversation(lastChatId);
   }
-
-  content.appendChild(messagesContainer);
-
-  const backButton = document.createElement("button");
-  backButton.textContent = "<- Back to conversations";
-  backButton.addEventListener("click", loadAllConversations);
-  content.appendChild(backButton);
 }

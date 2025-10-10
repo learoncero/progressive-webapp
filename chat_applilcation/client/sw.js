@@ -1,31 +1,57 @@
-const VERSION = 2;
-const ASSETS_CACHE_PREFIX = "chat-pwa";
+const VERSION = 1;
+
+const ASSETS_CACHE_PREFIX = "chat-pwa-assets";
 const ASSETS_CACHE_NAME = `${ASSETS_CACHE_PREFIX}-v${VERSION}`;
 const ASSET_URLS = [
   "/",
   "/index.html",
   "/app.js",
-  "/installer.js",
+  "/js/services/installer.js",
   "/app.webmanifest",
   "/style.css",
   "/favicon.ico",
-  "/images/background.jpg",
-  "/images/screenshot.png",
+  "/images/screenshot-narrow.png",
   "/images/screenshot-wide.png",
-  "/images/users/daniel.jpg",
-  "/images/users/franz.jpg",
-  "/images/users/guenther.jpg",
-  "/images/users/manuel.jpg",
   "/fonts/Roboto-Regular.tff",
   "/icons/maskable-icon-512x512.png",
   "/icons/android-chrome-192x192.png",
   "/icons/android-chrome-512x512.png",
 ];
 
+const USER_IMAGES_CACHE_PREFIX = "chat-pwa-user-images";
+const USER_IMAGES_CACHE_NAME = `${USER_IMAGES_CACHE_PREFIX}-v${VERSION}`;
+const USER_IMAGE_URLS = [
+  "/images/users/daniel.jpg",
+  "/images/users/franz.jpg",
+  "/images/users/guenther.jpg",
+  "/images/users/manuel.jpg",
+];
+
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(ASSETS_CACHE_NAME).then((cache) => cache.addAll(ASSET_URLS))
+    Promise.all([
+      caches.open(ASSETS_CACHE_NAME).then((cache) => cache.addAll(ASSET_URLS)),
+      caches
+        .open(USER_IMAGES_CACHE_NAME)
+        .then((cache) => cache.addAll(USER_IMAGE_URLS))
+        .catch((err) => console.error("Failed to cache user images:", err)),
+    ])
+  );
+});
+
+self.addEventListener("activate", (e) => {
+  e.waitUntil(
+    caches.keys().then((keyList) => {
+      return Promise.all(
+        keyList.map((key) => {
+          if (key === ASSETS_CACHE_NAME || key === USER_IMAGES_CACHE_NAME) {
+            return;
+          }
+          return caches.delete(key);
+        })
+      );
+    })
   );
 });
 
@@ -54,27 +80,4 @@ self.addEventListener("fetch", function (event) {
       })
     );
   }
-
-  if (event.request.url.endsWith("test2.txt")) {
-    event.respondWith(
-      fetch(event.request).catch((error) => {
-        return caches.match(event.request);
-      })
-    );
-  }
-});
-
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(
-        keyList.map((key) => {
-          if (key === ASSETS_CACHE_NAME) {
-            return;
-          }
-          return caches.delete(key);
-        })
-      );
-    })
-  );
 });
