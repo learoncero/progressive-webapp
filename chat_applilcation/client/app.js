@@ -18,6 +18,7 @@ if ("serviceWorker" in navigator) {
 document.addEventListener("DOMContentLoaded", () => {
   initInstaller();
   initConnectionStatus();
+  setupBackButtonHandler();
 
   // check for reset shortcut
   if (new URLSearchParams(window.location.search).get("resetLastChat")) {
@@ -72,39 +73,50 @@ async function openConversation(conversationId) {
 
   try {
     const messages = await fetchMessages(conversationId);
-    renderConversationView(conversationId, messages, loadConversations);
-
-    // send message functionality
-    const sendButton = document.getElementById("send-message-button");
-    const messageInput = document.getElementById("send-message-input");
-
-    if (sendButton && messageInput) {
-      sendButton.onclick = async () => {
-        const text = messageInput.value.trim();
-        console.log("Sending message:", text);
-        if (!text) return;
-
-        // send message via API
-        try {
-          await sendMessage(conversationId, LOGGED_IN_USER, text);
-
-          // append message to view without refetching
-          messages.push({ from: LOGGED_IN_USER, message: text });
-          renderConversationView(conversationId, messages, loadConversations);
-
-          messageInput.value = "";
-        } catch (err) {
-          console.error("Failed to send message:", err);
-          alert("Failed to send message.");
-        }
-      };
-    }
+    renderConversationView(conversationId, messages);
+    setupSendHandler(conversationId, messages);
   } catch (err) {
     console.error(err);
     loadingText.textContent = "Failed to load messages.";
   } finally {
     loadingText.hidden = true;
   }
+}
+
+function setupSendHandler(conversationId, messages) {
+  const sendButton = document.getElementById("send-message-button");
+  const messageInput = document.getElementById("send-message-input");
+
+  if (!sendButton || !messageInput) return;
+
+  // Reassign onclick for the current conversation
+  sendButton.onclick = async () => {
+    const text = messageInput.value.trim();
+    if (!text) return;
+
+    try {
+      await sendMessage(conversationId, LOGGED_IN_USER, text);
+
+      // Update the conversation's local messages array
+      messages.push({ from: LOGGED_IN_USER, message: text });
+
+      renderConversationView(conversationId, messages);
+
+      messageInput.value = "";
+    } catch (err) {
+      console.error("Failed to send message:", err);
+      alert("Failed to send message.");
+    }
+  };
+}
+
+function setupBackButtonHandler() {
+  const backButton = document.getElementById("back-button");
+  if (!backButton) return;
+
+  backButton.onclick = () => {
+    loadConversations();
+  };
 }
 
 // restore last chat on startup

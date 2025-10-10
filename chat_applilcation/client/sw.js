@@ -94,10 +94,11 @@ self.addEventListener("fetch", function (event) {
     return;
   }
 
-  if (path.startsWith("/conversations")) {
+  if (path === "/conversations" && event.request.method === "GET") {
     event.respondWith(
       caches.open(ASSETS_CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(event.request);
+
         return fetch(event.request)
           .then((resp) => {
             if (resp.ok) cache.put(event.request, resp.clone());

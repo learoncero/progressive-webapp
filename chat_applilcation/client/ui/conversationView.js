@@ -1,4 +1,4 @@
-export function renderConversationView(conversationId, messages, onBack) {
+export function renderConversationView(conversationId, messages) {
   const messagesContainer = document.getElementById("conversation-messages");
   messagesContainer.innerHTML = ""; // Clear previous messages
 
@@ -34,20 +34,4 @@ export function renderConversationView(conversationId, messages, onBack) {
   });
 
   messagesContainer.appendChild(list);
-
-  // input bar
-  const inputBar = document.createElement("div");
-  inputBar.classList.add("message-input-bar");
-  inputBar.innerHTML = `
-    <input type="text" id="send-message-input" placeholder="Type a message..." />
-    <button id="send-message-button">Send</button>
-  `;
-  messagesContainer.appendChild(inputBar);
-
-  // back button
-  const backButton = document.createElement("button");
-  backButton.textContent = "← Back to conversations";
-  backButton.classList.add("back-button");
-  backButton.addEventListener("click", onBack);
-  messagesContainer.appendChild(backButton);
 }
