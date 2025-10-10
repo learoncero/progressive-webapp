@@ -39,5 +39,18 @@
   "theme_color": "#ffffff",
   "background_color": "#ffffff",
   "display": "standalone",
-  "start_url": "/index.html"
+  "start_url": "/index.html",
+  "shortcuts": [
+    {
+      "name": "Reset Last Chat ID",
+      "url": "/reset-last-chat.html",
+      "icons": [
+        {
+          "src": "icons/reset-icon-96x96.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
 }

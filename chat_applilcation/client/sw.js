@@ -5,17 +5,24 @@ const ASSETS_CACHE_NAME = `${ASSETS_CACHE_PREFIX}-v${VERSION}`;
 const ASSET_URLS = [
   "/",
   "/index.html",
+  "/reset-last-chat.html",
   "/app.js",
-  "/js/services/installer.js",
   "/app.webmanifest",
   "/style.css",
   "/favicon.ico",
+  "/js/services/connectionService.js",
+  "/js/services/installerService.js",
+  "/js/services/storageService.js",
+  "/js/api/chatApi.js",
+  "/ui/conversationList.js",
+  "/ui/conversationView.js",
   "/images/screenshot-narrow.png",
   "/images/screenshot-wide.png",
   "/fonts/Roboto-Regular.tff",
-  "/icons/maskable-icon-512x512.png",
   "/icons/android-chrome-192x192.png",
   "/icons/android-chrome-512x512.png",
+  "/icons/maskable-icon-512x512.png",
+  "/icons/reset-icon-96x96.png",
 ];
 
 const USER_IMAGES_CACHE_PREFIX = "chat-pwa-user-images";
@@ -40,8 +47,9 @@ self.addEventListener("install", (event) => {
   );
 });
 
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
+self.addEventListener("activate", (event) => {
+  // cleanup old caches
+  event.waitUntil(
     caches.keys().then((keyList) => {
       return Promise.all(
         keyList.map((key) => {
@@ -57,13 +65,36 @@ self.addEventListener("activate", (e) => {
 
 self.addEventListener("fetch", function (event) {
   const path = new URL(event.request.url).pathname;
+
+  // assets from cache
   if (ASSET_URLS.includes(path)) {
     event.respondWith(
-      caches.open(ASSETS_CACHE_NAME).then((cache) => cache.match(event.request))
+      caches
+        .open(ASSETS_CACHE_NAME)
+        .then((cache) =>
+          cache
+            .match(event.request)
+            .then((cachedResponse) => cachedResponse || fetch(event.request))
+        )
     );
+    return;
   }
 
-  if (path.endsWith("/conversations")) {
+  // user images from cache
+  if (USER_IMAGE_URLS.includes(path)) {
+    event.respondWith(
+      caches
+        .open(USER_IMAGES_CACHE_NAME)
+        .then((cache) =>
+          cache
+            .match(event.request)
+            .then((cachedResponse) => cachedResponse || fetch(event.request))
+        )
+    );
+    return;
+  }
+
+  if (path.startsWith("/conversations")) {
     event.respondWith(
       caches.open(ASSETS_CACHE_NAME).then(async (cache) => {
         const cached = await cache.match(event.request);
@@ -79,5 +110,13 @@ self.addEventListener("fetch", function (event) {
           );
       })
     );
+    return;
   }
+
+  // fallback: try network first, fallback to offline response for anything else
+  event.respondWith(
+    fetch(event.request).catch(
+      () => new Response("Offline — resource not cached", { status: 503 })
+    )
+  );
 });

@@ -4,7 +4,7 @@ import {
   sendMessage,
 } from "./js/api/chatApi.js";
 import { initConnectionStatus } from "./js/services/connectionService.js";
-import { initInstaller } from "./js/services/installer.js";
+import { initInstaller } from "./js/services/installerService.js";
 import { renderConversationList } from "./ui/conversationList.js";
 import { renderConversationView } from "./ui/conversationView.js";
 
@@ -18,16 +18,26 @@ if ("serviceWorker" in navigator) {
 document.addEventListener("DOMContentLoaded", () => {
   initInstaller();
   initConnectionStatus();
-  loadConversations().then(() => {
-    restoreLastChatId();
-  });
+
+  // check for reset shortcut
+  if (new URLSearchParams(window.location.search).get("resetLastChat")) {
+    resetLastChatId();
+  } else {
+    loadConversations().then(() => {
+      restoreLastChatId();
+    });
+  }
 });
 
 // Load list of conversations
 async function loadConversations() {
   const loadingText = document.getElementById("loading-text-conversations");
   const listContainer = document.getElementById("conversation-list-container");
+  const conversations = document.getElementById("conversations");
+  conversations.innerHTML = "";
   const viewContainer = document.getElementById("conversation-view-container");
+  const messagesContainer = document.getElementById("conversation-messages");
+  messagesContainer.innerHTML = ""; // Clear previous messages
 
   // Show conversation list, hide view
   listContainer.hidden = false;
@@ -103,4 +113,9 @@ function restoreLastChatId() {
   if (lastChatId) {
     openConversation(lastChatId);
   }
+}
+
+// reset last chat id
+function resetLastChatId() {
+  localStorage.removeItem("lastChatId");
 }
