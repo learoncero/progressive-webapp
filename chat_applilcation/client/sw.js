@@ -1,3 +1,10 @@
+import {
+  saveConversations,
+  getConversationsByUsername,
+  saveMessages,
+  getMessagesByConversationId,
+} from "./js/services/dbService.js";
+
 const VERSION = 1;
 
 const ASSETS_CACHE_PREFIX = "chat-pwa-assets";
@@ -64,7 +71,8 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", function (event) {
-  const path = new URL(event.request.url).pathname;
+  const url = new URL(event.request.url);
+  const path = url.pathname;
 
   // assets from cache
   if (ASSET_URLS.includes(path)) {
@@ -95,29 +103,105 @@ self.addEventListener("fetch", function (event) {
   }
 
   if (path === "/conversations" && event.request.method === "GET") {
-    event.respondWith(
-      caches.open(ASSETS_CACHE_NAME).then(async (cache) => {
-        const cached = await cache.match(event.request);
+    const userParam = url.searchParams.get("user");
 
-        return fetch(event.request)
-          .then((resp) => {
-            if (resp.ok) cache.put(event.request, resp.clone());
-            return resp;
-          })
-          .catch(
-            () =>
-              cached ||
-              new Response("Offline — no cached conversations", { status: 503 })
+    if (userParam) {
+      event.respondWith(
+        (async () => {
+          try {
+            // network first
+            const networkResponse = await fetch(event.request);
+            const data = await networkResponse.clone().json();
+
+            // lazily store fetched conversations
+            try {
+              await saveConversations(data);
+            } catch (dbError) {
+              console.error(
+                "Failed to save conversations to IndexedDB:",
+                dbError
+              );
+            }
+            return networkResponse;
+          } catch (err) {
+            console.warn("Network failed, trying offline fallback");
+            // Offline fallback: read from IndexedDB
+            const cached = await getConversationsByUsername(userParam);
+            if (cached && cached.length > 0) {
+              return new Response(JSON.stringify(cached), {
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+            return new Response(
+              JSON.stringify({
+                error: "Offline: no cached conversations found",
+              }),
+              {
+                status: 503,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+        })()
+      );
+      return;
+    }
+  }
+
+  if (
+    path.startsWith("/conversations/") &&
+    path.endsWith("/messages") &&
+    event.request.method === "GET"
+  ) {
+    const conversationId = path.match(/^\/conversations\/(\d+)\/messages$/)[1];
+
+    event.respondWith(
+      (async () => {
+        try {
+          // network first
+          const networkResponse = await fetch(event.request);
+          const messages = await networkResponse.clone().json();
+
+          // lazily store fetched messages
+          try {
+            await saveMessages(conversationId, messages);
+          } catch (dbError) {
+            console.error("Failed to save messages to IndexedDB:", dbError);
+          }
+          return networkResponse;
+        } catch (err) {
+          // Offline fallback: read from IndexedDB
+          console.warn(
+            "Network failed, loading cached messages for conversation",
+            conversationId
           );
-      })
+          const cachedMessages = await getMessagesByConversationId(
+            conversationId
+          );
+          return new Response(JSON.stringify(cachedMessages), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+      })()
     );
     return;
   }
 
   // fallback: try network first, fallback to offline response for anything else
   event.respondWith(
-    fetch(event.request).catch(
-      () => new Response("Offline — resource not cached", { status: 503 })
-    )
+    fetch(event.request).catch(() => {
+      // Return JSON error for API requests, plain text for others
+      if (path.startsWith("/conversations") || path.startsWith("/users")) {
+        return new Response(
+          JSON.stringify({ error: "Offline — resource not cached" }),
+          {
+            status: 503,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+      return new Response("Offline — resource not cached", { status: 503 });
+    })
   );
 });

@@ -65,14 +65,6 @@ const conversations = [
       { from: "franz", message: "Hello Daniel!" },
     ],
   },
-  // {
-  //   id: 5,
-  //   participants: ["lea", "franz"],
-  //   messages: [
-  //     { from: "lea", message: "Hello Franz!" },
-  //     { from: "franz", message: "Hello Lea!" },
-  //   ],
-  // },
 ];
 
 var newMessages = 0;

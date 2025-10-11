@@ -7,15 +7,17 @@ import { initConnectionStatus } from "./js/services/connectionService.js";
 import { initInstaller } from "./js/services/installerService.js";
 import { renderConversationList } from "./ui/conversationList.js";
 import { renderConversationView } from "./ui/conversationView.js";
+import { initDb } from "./js/services/dbService.js";
 
 const LOGGED_IN_USER = "manuel";
 
 // Register service worker
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/sw.js");
+  navigator.serviceWorker.register("sw.js", { type: "module" });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initDb();
   initInstaller();
   initConnectionStatus();
   setupBackButtonHandler();
