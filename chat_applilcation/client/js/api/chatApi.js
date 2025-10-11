@@ -36,3 +36,14 @@ export async function sendMessage(conversationId, from, message) {
   }
   return response.json();
 }
+
+export async function fetchUsers() {
+  const response = await fetch(`/users`);
+  if (!response.ok) {
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Network error" }));
+    throw new Error(errorData.error || `HTTP ${response.status}`);
+  }
+  return response.json();
+}

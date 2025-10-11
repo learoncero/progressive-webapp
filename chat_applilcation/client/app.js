@@ -2,6 +2,7 @@ import {
   fetchConversations,
   fetchMessages,
   sendMessage,
+  fetchUsers,
 } from "./js/api/chatApi.js";
 import { initConnectionStatus } from "./js/services/connectionService.js";
 import { initInstaller } from "./js/services/installerService.js";
@@ -18,6 +19,7 @@ if ("serviceWorker" in navigator) {
 
 document.addEventListener("DOMContentLoaded", () => {
   initDb();
+  fetchUsers();
   initInstaller();
   initConnectionStatus();
   setupBackButtonHandler();
@@ -50,7 +52,8 @@ async function loadConversations() {
 
   try {
     const conversations = await fetchConversations(LOGGED_IN_USER);
-    renderConversationList(conversations, openConversation);
+    const users = await fetchUsers();
+    renderConversationList(conversations, openConversation, users);
   } catch (err) {
     console.error(err);
     loadingText.textContent = "Failed to load conversations.";
@@ -75,7 +78,8 @@ async function openConversation(conversationId) {
 
   try {
     const messages = await fetchMessages(conversationId);
-    renderConversationView(conversationId, messages);
+    const users = await fetchUsers();
+    renderConversationView(conversationId, messages, users);
     setupSendHandler(conversationId, messages);
   } catch (err) {
     console.error(err);
@@ -98,11 +102,12 @@ function setupSendHandler(conversationId, messages) {
 
     try {
       await sendMessage(conversationId, LOGGED_IN_USER, text);
+      const users = await fetchUsers();
 
       // Update the conversation's local messages array
       messages.push({ from: LOGGED_IN_USER, message: text });
 
-      renderConversationView(conversationId, messages);
+      renderConversationView(conversationId, messages, users);
 
       messageInput.value = "";
     } catch (err) {

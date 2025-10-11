@@ -3,6 +3,8 @@ import {
   getConversationsByUsername,
   saveMessages,
   getMessagesByConversationId,
+  saveUsers,
+  getAllUsers,
 } from "./js/services/dbService.js";
 
 const VERSION = 1;
@@ -42,6 +44,7 @@ const USER_IMAGE_URLS = [
 ];
 
 self.addEventListener("install", (event) => {
+  console.log("SW: Installing service worker");
   self.skipWaiting();
   event.waitUntil(
     Promise.all([
@@ -55,6 +58,7 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
+  console.log("SW: Activating service worker");
   // cleanup old caches
   event.waitUntil(
     caches.keys().then((keyList) => {
@@ -102,6 +106,7 @@ self.addEventListener("fetch", function (event) {
     return;
   }
 
+  // Handle conversations API
   if (path === "/conversations" && event.request.method === "GET") {
     const userParam = url.searchParams.get("user");
 
@@ -118,29 +123,44 @@ self.addEventListener("fetch", function (event) {
               await saveConversations(data);
             } catch (dbError) {
               console.error(
-                "Failed to save conversations to IndexedDB:",
+                "SW: Failed to save conversations to IndexedDB:",
                 dbError
               );
             }
             return networkResponse;
           } catch (err) {
-            console.warn("Network failed, trying offline fallback");
-            // Offline fallback: read from IndexedDB
-            const cached = await getConversationsByUsername(userParam);
-            if (cached && cached.length > 0) {
-              return new Response(JSON.stringify(cached), {
-                headers: { "Content-Type": "application/json" },
-              });
-            }
-            return new Response(
-              JSON.stringify({
-                error: "Offline: no cached conversations found",
-              }),
-              {
-                status: 503,
-                headers: { "Content-Type": "application/json" },
-              }
+            console.warn(
+              "SW: Network failed, trying offline fallback for conversations"
             );
+            // Offline fallback: read from IndexedDB
+            try {
+              const cached = await getConversationsByUsername(userParam);
+              if (cached && cached.length > 0) {
+                return new Response(JSON.stringify(cached), {
+                  headers: { "Content-Type": "application/json" },
+                });
+              }
+              return new Response(
+                JSON.stringify({
+                  error: "Offline: no cached conversations found",
+                }),
+                {
+                  status: 503,
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+            } catch (dbError) {
+              console.error("SW: Database error:", dbError);
+              return new Response(
+                JSON.stringify({
+                  error: "Offline: database error",
+                }),
+                {
+                  status: 503,
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
+            }
           }
         })()
       );
@@ -148,6 +168,7 @@ self.addEventListener("fetch", function (event) {
     }
   }
 
+  // Handle messages API
   if (
     path.startsWith("/conversations/") &&
     path.endsWith("/messages") &&
@@ -166,22 +187,67 @@ self.addEventListener("fetch", function (event) {
           try {
             await saveMessages(conversationId, messages);
           } catch (dbError) {
-            console.error("Failed to save messages to IndexedDB:", dbError);
+            console.error("SW: Failed to save messages to IndexedDB:", dbError);
           }
           return networkResponse;
         } catch (err) {
           // Offline fallback: read from IndexedDB
           console.warn(
-            "Network failed, loading cached messages for conversation",
+            "SW: Network failed, loading cached messages for conversation",
             conversationId
           );
-          const cachedMessages = await getMessagesByConversationId(
-            conversationId
-          );
-          return new Response(JSON.stringify(cachedMessages), {
-            status: 200,
-            headers: { "Content-Type": "application/json" },
-          });
+          try {
+            const cachedMessages = await getMessagesByConversationId(
+              conversationId
+            );
+            return new Response(JSON.stringify(cachedMessages), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          } catch (dbError) {
+            console.error("SW: Database error:", dbError);
+            return new Response(JSON.stringify([]), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+        }
+      })()
+    );
+    return;
+  }
+
+  // Handle users API
+  if (path === "/users" && event.request.method === "GET") {
+    event.respondWith(
+      (async () => {
+        try {
+          // network first
+          const networkResponse = await fetch(event.request);
+          const users = await networkResponse.clone().json();
+
+          try {
+            await saveUsers(users);
+          } catch (dbError) {
+            console.error("SW: Failed to save users to IndexedDB:", dbError);
+          }
+          return networkResponse;
+        } catch (err) {
+          // Offline fallback: read from IndexedDB
+          console.warn("SW: Network failed, loading cached users");
+          try {
+            const cachedUsers = await getAllUsers();
+            return new Response(JSON.stringify(cachedUsers), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          } catch (dbError) {
+            console.error("SW: Database error:", dbError);
+            return new Response(JSON.stringify([]), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
         }
       })()
     );

@@ -1,4 +1,4 @@
-export function renderConversationView(conversationId, messages) {
+export function renderConversationView(conversationId, messages, users) {
   const messagesContainer = document.getElementById("conversation-messages");
   messagesContainer.innerHTML = ""; // Clear previous messages
 
@@ -12,23 +12,38 @@ export function renderConversationView(conversationId, messages) {
   list.classList.add("messages-list");
 
   messages.forEach((message) => {
-    // Container for image + bubble
+    // Find user info
+    const user = users.find((u) => u.username === message.from);
+
+    // Container for image + name + bubble
     const messageWrapper = document.createElement("div");
     messageWrapper.classList.add("message-wrapper");
 
+    // Left side: Avatar and name
+    const userSection = document.createElement("div");
+    userSection.classList.add("user-section");
+
     // User image
     const userImg = document.createElement("img");
-    userImg.src = `/images/users/${message.from}.jpg`;
-    userImg.alt = message.from;
+    userImg.src = user?.image || `/images/users/default.jpg`;
+    userImg.alt = user?.fullname || message.from;
     userImg.classList.add("user-avatar");
 
-    // Bubble
+    // User name
+    const nameElement = document.createElement("div");
+    nameElement.classList.add("user-name");
+    nameElement.textContent = user?.fullname || message.from;
+
+    userSection.appendChild(userImg);
+    userSection.appendChild(nameElement);
+
+    // Message bubble
     const messageElement = document.createElement("div");
     messageElement.classList.add("speech-bubble");
     messageElement.textContent = message.message;
 
-    // Append image and bubble to wrapper
-    messageWrapper.appendChild(userImg);
+    // Append to wrapper
+    messageWrapper.appendChild(userSection);
     messageWrapper.appendChild(messageElement);
     list.appendChild(messageWrapper);
   });

@@ -61,6 +61,25 @@ export function saveUsers(users) {
   });
 }
 
+export function getAllUsers() {
+  return new Promise((resolve, reject) => {
+    const openRequest = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
+
+    openRequest.onsuccess = function () {
+      const db = openRequest.result;
+      const transaction = db.transaction(USER_OBJECT_STORE, "readonly");
+      const store = transaction.objectStore(USER_OBJECT_STORE);
+      const request = store.getAll();
+
+      request.onsuccess = (event) => {
+        resolve(event.target.result);
+      };
+
+      request.onerror = (e) => reject(e);
+    };
+  });
+}
+
 export function saveConversations(conversations) {
   return new Promise((resolve, reject) => {
     const openRequest = indexedDB.open(DATABASE_NAME, DATABASE_VERSION);
