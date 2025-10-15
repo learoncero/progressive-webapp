@@ -9,6 +9,12 @@ import { initInstaller } from "./js/services/installerService.js";
 import { renderConversationList } from "./ui/conversationList.js";
 import { renderConversationView } from "./ui/conversationView.js";
 import { initDb } from "./js/services/dbService.js";
+import {
+  getLastChatId,
+  setLastChatId,
+  clearLastChatId,
+} from "./js/services/storageService.js";
+import timeService, { formatTime } from "./js/services/timeService.js";
 
 const LOGGED_IN_USER = "manuel";
 
@@ -22,14 +28,18 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchUsers();
   initInstaller();
   initConnectionStatus();
+  initTimeService();
   setupBackButtonHandler();
 
   // check for reset shortcut
   if (new URLSearchParams(window.location.search).get("resetLastChat")) {
-    resetLastChatId();
+    clearLastChatId();
   } else {
     loadConversations().then(() => {
-      restoreLastChatId();
+      const lastChatId = getLastChatId();
+      if (lastChatId) {
+        openConversation(lastChatId);
+      }
     });
   }
 });
@@ -64,7 +74,7 @@ async function loadConversations() {
 
 // open a specific conversation
 async function openConversation(conversationId) {
-  localStorage.setItem("lastChatId", conversationId);
+  setLastChatId(conversationId);
 
   const loadingText = document.getElementById("loading-text-messages");
   const listContainer = document.getElementById("conversation-list-container");
@@ -126,15 +136,31 @@ function setupBackButtonHandler() {
   };
 }
 
-// restore last chat on startup
-function restoreLastChatId() {
-  const lastChatId = localStorage.getItem("lastChatId");
-  if (lastChatId) {
-    openConversation(lastChatId);
-  }
-}
+// Initialize time service
+async function initTimeService() {
+  const timeElement = document.getElementById("time-text");
 
-// reset last chat id
-function resetLastChatId() {
-  localStorage.removeItem("lastChatId");
+  if (!timeElement) {
+    console.warn("Time display element not found");
+    return;
+  }
+
+  // Initialize the shared worker connection
+  const success = await timeService.init();
+
+  if (!success) {
+    timeElement.textContent = "Time service unavailable";
+    return;
+  }
+
+  // Subscribe to time updates
+  timeService.subscribe((timeData) => {
+    const { formatted } = timeData;
+    timeElement.textContent = `${formatted.date} ${formatted.time}`;
+  });
+
+  // Start time updates every second
+  timeService.startUpdates(1000);
+
+  console.log("Time service initialized successfully");
 }
