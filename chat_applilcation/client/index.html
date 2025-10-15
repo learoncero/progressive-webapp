@@ -40,7 +40,17 @@
     <div class="install-container">
       <button id="install-button" hidden>Install this App</button>
     </div>
-    <footer>Status <label id="status"></label></footer>
+    <footer>
+      <div class="footer-content">
+        <div class="status-section">Status <label id="status"></label></div>
+        <div class="session-timer-section">
+          <div id="session-timer" class="session-timer">
+            <span class="session-label">Session:</span>
+            <span id="session-time">00:00:00</span>
+          </div>
+        </div>
+      </div>
+    </footer>
 
     <script type="module" src="./app.js"></script>
   </body>

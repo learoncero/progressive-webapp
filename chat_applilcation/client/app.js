@@ -15,6 +15,7 @@ import {
   clearLastChatId,
 } from "./js/services/storageService.js";
 import timeService, { formatTime } from "./js/services/timeService.js";
+import sessionTimerService from "./js/services/sessionTimerService.js";
 
 const LOGGED_IN_USER = "manuel";
 
@@ -29,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initInstaller();
   initConnectionStatus();
   initTimeService();
+  initSessionTimer();
   setupBackButtonHandler();
 
   // check for reset shortcut
@@ -164,3 +166,46 @@ async function initTimeService() {
 
   console.log("Time service initialized successfully");
 }
+
+// Initialize session timer service
+async function initSessionTimer() {
+  const sessionTimeElement = document.getElementById("session-time");
+
+  if (!sessionTimeElement) {
+    console.warn("Session timer display element not found");
+    return;
+  }
+
+  // Initialize the dedicated worker
+  const success = await sessionTimerService.init();
+
+  if (!success) {
+    sessionTimeElement.textContent = "Timer unavailable";
+    return;
+  }
+
+  // Subscribe to session timer updates
+  sessionTimerService.subscribe((sessionData) => {
+    sessionTimeElement.textContent = sessionData.formattedDuration;
+
+    // Add visual indicator when session is running
+    if (sessionData.isRunning) {
+      sessionTimeElement.classList.add("running");
+    } else {
+      sessionTimeElement.classList.remove("running");
+    }
+  });
+
+  // Start the session timer
+  sessionTimerService.startSession();
+
+  console.log("Session timer service initialized successfully");
+}
+
+// Cleanup on page unload
+window.addEventListener("beforeunload", () => {
+  // Stop the session timer when leaving the page
+  if (sessionTimerService.isSessionRunning()) {
+    sessionTimerService.stopSession();
+  }
+});
