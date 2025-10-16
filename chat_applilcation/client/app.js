@@ -14,8 +14,6 @@ import {
   setLastChatId,
   clearLastChatId,
 } from "./js/services/storageService.js";
-import timeService, { formatTime } from "./js/services/timeService.js";
-import sessionTimerService from "./js/services/sessionTimerService.js";
 
 const LOGGED_IN_USER = "manuel";
 
@@ -29,8 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchUsers();
   initInstaller();
   initConnectionStatus();
-  initTimeService();
-  initSessionTimer();
+  initDedicatedWorker();
   setupBackButtonHandler();
 
   // check for reset shortcut
@@ -138,74 +135,33 @@ function setupBackButtonHandler() {
   };
 }
 
-// Initialize time service
-async function initTimeService() {
-  const timeElement = document.getElementById("time-text");
-
-  if (!timeElement) {
-    console.warn("Time display element not found");
-    return;
+// Initialize dedicated and shared workers for session timer and date/time
+function renderSessionTime(event) {
+  if (event.data.currentValue) {
+    document.querySelector("#session-time").innerHTML = event.data.currentValue;
   }
-
-  // Initialize the shared worker connection
-  const success = await timeService.init();
-
-  if (!success) {
-    timeElement.textContent = "Time service unavailable";
-    return;
-  }
-
-  // Subscribe to time updates
-  timeService.subscribe((timeData) => {
-    const { formatted } = timeData;
-    timeElement.textContent = `${formatted.date} ${formatted.time}`;
-  });
-
-  // Start time updates every second
-  timeService.startUpdates(1000);
-
-  console.log("Time service initialized successfully");
 }
 
-// Initialize session timer service
-async function initSessionTimer() {
-  const sessionTimeElement = document.getElementById("session-time");
-
-  if (!sessionTimeElement) {
-    console.warn("Session timer display element not found");
-    return;
+function renderCurrentTime(event) {
+  if (event.data.currentValue) {
+    document.querySelector("#current-time-text").innerHTML =
+      event.data.currentValue;
   }
-
-  // Initialize the dedicated worker
-  const success = await sessionTimerService.init();
-
-  if (!success) {
-    sessionTimeElement.textContent = "Timer unavailable";
-    return;
-  }
-
-  // Subscribe to session timer updates
-  sessionTimerService.subscribe((sessionData) => {
-    sessionTimeElement.textContent = sessionData.formattedDuration;
-
-    // Add visual indicator when session is running
-    if (sessionData.isRunning) {
-      sessionTimeElement.classList.add("running");
-    } else {
-      sessionTimeElement.classList.remove("running");
-    }
-  });
-
-  // Start the session timer
-  sessionTimerService.startSession();
-
-  console.log("Session timer service initialized successfully");
 }
 
-// Cleanup on page unload
-window.addEventListener("beforeunload", () => {
-  // Stop the session timer when leaving the page
-  if (sessionTimerService.isSessionRunning()) {
-    sessionTimerService.stopSession();
+let dedicatedWorker;
+let sharedWorker;
+function initDedicatedWorker() {
+  if ("Worker" in window) {
+    dedicatedWorker = new Worker("./js/workers/dedicatedWorker.js");
+    dedicatedWorker.onmessage = renderSessionTime;
+
+    sharedWorker = new SharedWorker("./js/workers/sharedWorker.js");
+    sharedWorker.port.onmessage = renderCurrentTime;
+
+    console.log("Dedicated and shared workers initialized successfully");
+  } else {
+    console.warn("Web Workers not supported in this browser");
+    document.querySelector("#session-time").innerHTML = "Timer unavailable";
   }
-});
+}
