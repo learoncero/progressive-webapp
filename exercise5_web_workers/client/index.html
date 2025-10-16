@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>My first PWA with Service Worker</title>
+    <link rel="icon" href="favicon.ico" />
+    <link rel="manifest" href="app.webmanifest" />
+    <meta name="viewport" content="initial-scale=1" />
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./installer.js"></script>
+    <script type="module" src="notification.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav><a href="/">Home</a></nav>
+    <main id="content">
+      <div style="display: flex; flex-direction: column; gap: 4rem">
+        <div>
+          <h3>
+            Dedicated Worker Counter:
+            <span id="dedicatedCounter"></span>
+          </h3>
+          <h3>
+            Shared Worker Counter:
+            <span id="sharedCounter"></span>
+          </h3>
+          <button id="resetBtn">Reset</button>
+        </div>
+
+        <div>
+          <h1>Push Notifications</h1>
+          <button id="notifyBtn">Notify me</button>
+          <input id="messageInput" type="text" />
+          <button id="pushBtn">Push</button>
+        </div>
+      </div>
+    </main>
+    <button id="install" hidden>Install this App</button>
+    <footer>Status <label id="status"></label></footer>
+  </body>
+</html>
