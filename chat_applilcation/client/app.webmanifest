@@ -30,7 +30,7 @@
     },
     {
       "src": "images/screenshot-wide.png",
-      "sizes": "640x320",
+      "sizes": "605x317",
       "type": "image/png",
       "form_factor": "wide",
       "label": "Desktop Shell"
