@@ -1,7 +1,7 @@
 {
   "name": "Chat Application",
   "short_name": "Chat App",
-  "description": "This is a simple chat application that displays a list of all ongoing conversations and allows to open one of these to send a new message.",
+  "description": "This is a simple chat application.",
   "icons": [
     {
       "src": "icons/android-chrome-192x192.png",
