@@ -22,14 +22,14 @@
   ],
   "screenshots": [
     {
-      "src": "images/screenshot-narrow.png",
+      "src": "/images/screenshot-narrow.png",
       "sizes": "320x640",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Mobile Shell"
     },
     {
-      "src": "images/screenshot-wide.png",
+      "src": "/images/screenshot-wide.png",
       "sizes": "605x317",
       "type": "image/png",
       "form_factor": "wide",
