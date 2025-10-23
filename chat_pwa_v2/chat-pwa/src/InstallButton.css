@@ -1,0 +1,9 @@
+#install-button {
+  background-color: #4caf50;
+  font-size: 1rem;
+  padding: 0.9em 2em;
+}
+
+#install-button:hover {
+  background-color: #43a047;
+}
