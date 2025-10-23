@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>My first PWA with Service Worker</title>
+    <link rel="icon" href="favicon.ico" />
+    <link rel="manifest" href="app.webmanifest" />
+    <meta name="viewport" content="initial-scale=1" />
+    <script type="module" src="./app.js"></script>
+    <script type="module" src="./installer.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav><a href="/">Home</a></nav>
+    <main id="content">
+      <!-- Here will the actual content be displayed -->
+    </main>
+    <button id="install" hidden>Install this App</button>
+    <footer>Status <label id="status"></label></footer>
+  </body>
+</html>
