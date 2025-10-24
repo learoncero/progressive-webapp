@@ -6,17 +6,16 @@ import {
 } from "workbox-precaching";
 import { clientsClaim } from "workbox-core";
 import { NavigationRoute, registerRoute } from "workbox-routing";
-import { NetworkFirst, CacheFirst } from "workbox-strategies";
+import { NetworkFirst } from "workbox-strategies";
 import { CacheableResponsePlugin } from "workbox-cacheable-response";
 import { ExpirationPlugin } from "workbox-expiration";
 
 declare let self: ServiceWorkerGlobalScope;
 
-// ===== STEP 1: Precache all static files (App Shell) =====
-// This caches: HTML, CSS, JS, images, fonts automatically from globPatterns
+// precache all static files (App Shell)
 precacheAndRoute(self.__WB_MANIFEST);
 
-// ===== STEP 2: Clean old caches =====
+// clean old caches
 cleanupOutdatedCaches();
 
 let allowlist: RegExp[] | undefined;
@@ -35,37 +34,18 @@ registerRoute(
   ({ url }) =>
     url.pathname.startsWith("/users") ||
     url.pathname.startsWith("/conversations") ||
-    url.pathname.includes("/messages"),
-  new NetworkFirst({
-    cacheName: "api-cache",
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200], // Cache successful responses
-      }),
-      new ExpirationPlugin({
-        maxEntries: 50, // Max 50 API responses cached
-        maxAgeSeconds: 5 * 60, // Cache for 5 minutes
-      }),
-    ],
-  })
-);
-
-// ===== STEP 5: Cache images with CacheFirst strategy =====
-// Serve from cache first, network if not cached
-registerRoute(
-  ({ request }) => request.destination === "image",
-  new CacheFirst({
-    cacheName: "image-cache",
-    plugins: [
-      new CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new ExpirationPlugin({
-        maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-      }),
-    ],
-  })
+    new NetworkFirst({
+      cacheName: "api-cache",
+      plugins: [
+        new CacheableResponsePlugin({
+          statuses: [0, 200], // Cache successful responses
+        }),
+        new ExpirationPlugin({
+          maxEntries: 50, // Max 50 API responses cached
+          maxAgeSeconds: 5 * 60, // Cache for 5 minutes
+        }),
+      ],
+    })
 );
 
 self.skipWaiting();
