@@ -37,15 +37,6 @@ export default function InstallButton() {
     // Show the install prompt
     await deferredPrompt.prompt();
 
-    // Wait for the user to respond to the prompt
-    const choiceResult = await deferredPrompt.userChoice;
-
-    if (choiceResult.outcome === "accepted") {
-      console.log("User accepted the install prompt");
-    } else {
-      console.log("User dismissed the install prompt");
-    }
-
     // Clear the deferredPrompt
     setDeferredPrompt(null);
     setIsInstallable(false);
@@ -57,8 +48,10 @@ export default function InstallButton() {
   }
 
   return (
-    <button onClick={installApp} id="install-button">
-      Install App
-    </button>
+    <div className="install-button-container">
+      <button onClick={installApp} id="install-button">
+        Install App
+      </button>
+    </div>
   );
 }

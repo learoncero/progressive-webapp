@@ -1,0 +1,31 @@
+.conversation-view {
+  flex: 1;
+  background: white;
+  animation: fadeIn 0.3s ease-in;
+  padding: 1em;
+}
+
+#conversation-messages {
+  min-height: 400px;
+}
+
+/* Typography */
+h2 {
+  color: #333;
+  font-size: 1.8rem;
+  margin: 0 0 1.5rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e0e0e0;
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

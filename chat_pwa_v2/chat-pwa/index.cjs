@@ -9,22 +9,22 @@ const users = [
   {
     username: "daniel",
     fullname: "Daniel Craig",
-    image: "/images/daniel.jpg",
+    image: "/images/users/daniel.jpg",
   },
   {
     username: "manuel",
     fullname: "Manuel Neuer",
-    image: "/images/manuel.jpg",
+    image: "/images/users/manuel.jpg",
   },
   {
     username: "guenther",
     fullname: "Günther Jauch",
-    image: "/images/guenther.jpg",
+    image: "/images/users/guenther.jpg",
   },
   {
     username: "franz",
     fullname: "Franz Kafka",
-    image: "/images/franz.jpg",
+    image: "/images/users/franz.jpg",
   },
 ];
 
