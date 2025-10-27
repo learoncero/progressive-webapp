@@ -34,18 +34,19 @@ registerRoute(
   ({ url }) =>
     url.pathname.startsWith("/users") ||
     url.pathname.startsWith("/conversations") ||
-    new NetworkFirst({
-      cacheName: "api-cache",
-      plugins: [
-        new CacheableResponsePlugin({
-          statuses: [0, 200], // Cache successful responses
-        }),
-        new ExpirationPlugin({
-          maxEntries: 50, // Max 50 API responses cached
-          maxAgeSeconds: 5 * 60, // Cache for 5 minutes
-        }),
-      ],
-    })
+    url.pathname.includes("/messages"),
+  new NetworkFirst({
+    cacheName: "api-cache",
+    plugins: [
+      new CacheableResponsePlugin({
+        statuses: [0, 200], // Cache successful responses
+      }),
+      new ExpirationPlugin({
+        maxEntries: 50, // Max 50 API responses cached
+        maxAgeSeconds: 5 * 60, // Cache for 5 minutes
+      }),
+    ],
+  })
 );
 
 self.skipWaiting();

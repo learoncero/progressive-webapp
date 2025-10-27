@@ -36,6 +36,10 @@ export default function App() {
 
   async function onSelectConversation(id: number) {
     setSelectedConversationId(id);
+    await loadMessagesForConversation(id);
+  }
+
+  async function loadMessagesForConversation(id: number) {
     const msgs = await MessageService.getMessagesByConversationId(id);
     setMessages(msgs);
   }
@@ -57,7 +61,11 @@ export default function App() {
               conversationId={selectedConversationId}
               messages={messages}
               users={users}
+              currentUser={LOGGED_IN_USER}
               onClose={() => setSelectedConversationId(null)}
+              onMessageSent={() =>
+                loadMessagesForConversation(selectedConversationId)
+              }
             />
           )}
         </div>
