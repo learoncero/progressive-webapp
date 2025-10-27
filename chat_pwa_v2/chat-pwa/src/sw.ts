@@ -33,8 +33,7 @@ registerRoute(
 registerRoute(
   ({ url }) =>
     url.pathname.startsWith("/users") ||
-    url.pathname.startsWith("/conversations") ||
-    url.pathname.includes("/messages"),
+    url.pathname.startsWith("/conversations"),
   new NetworkFirst({
     cacheName: "api-cache",
     plugins: [

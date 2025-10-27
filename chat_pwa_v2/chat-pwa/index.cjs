@@ -1,4 +1,7 @@
 const express = require("express");
+const ws = require("ws");
+const webpush = require("web-push");
+const jsonParser = require("body-parser").json();
 const app = express();
 
 app.use(express.static("dist"));
@@ -109,8 +112,8 @@ app.post("/conversations/:id/messages", (request, reply) => {
 
   conversation.messages.push(newMessage);
   newMessages++;
+  console.log("New message added. Total new messages:", newMessages);
   reply.send(newMessage);
-  broadcastNewMessageCounter(newMessages);
 });
 
 function findConversation(id) {
@@ -140,4 +143,26 @@ app.get("/messageEvent", (req, res) => {
     Connection: "keep-alive",
   });
   sseClients.add(res);
+  broadcastNewMessageCounter(sseClients.size);
 });
+
+// WebSocket Server
+const wsServer = new ws.Server({ port: 5001 });
+wsServer.on("connection", (socket) => {
+  socket.on("message", (message) => console.log(message));
+  broadcastClientCountToWebSocketClients(wsServer.clients.size);
+  socket.on("close", (socket) => {
+    broadcastClientCountToWebSocketClients(wsServer.clients.size);
+  });
+  socket.on("error", (error) => {
+    console.error("WebSocket error:", error);
+  });
+});
+
+function broadcastClientCountToWebSocketClients(clientCount) {
+  wsServer.clients.forEach((client) => {
+    if (client.readyState === ws.OPEN) {
+      client.send(JSON.stringify({ activeUsers: clientCount }));
+    }
+  });
+}
