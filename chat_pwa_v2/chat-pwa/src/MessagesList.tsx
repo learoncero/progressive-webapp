@@ -14,6 +14,7 @@ export default function MessagesList({ messages, users }: MessagesListProps) {
       ) : (
         messages.map((m, i) => {
           const user = users.find((u) => u.username === m.from);
+
           return (
             <div key={i} className="message-wrapper">
               <div className="user-section">

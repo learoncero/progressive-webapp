@@ -84,6 +84,19 @@
   border: 1px solid #e0e0e0;
 }
 
+.message-photo {
+  max-width: 100%;
+  width: 300px;
+  border-radius: 8px;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.message-photo:hover {
+  transform: scale(1.02);
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
