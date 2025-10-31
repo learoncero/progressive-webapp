@@ -1,7 +1,7 @@
-.time-display {
+.user-count-display {
   position: absolute;
   top: 2rem;
-  right: 2rem;
+  left: 2rem;
   background: rgba(255, 255, 255, 0.2);
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -9,7 +9,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-#time-text {
+#active-user-count-text {
   font-size: 0.9rem;
   font-weight: 500;
   color: white;

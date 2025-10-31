@@ -150,10 +150,13 @@ app.get("/messageEvent", (req, res) => {
 const wsServer = new ws.Server({ port: 5001 });
 wsServer.on("connection", (socket) => {
   socket.on("message", (message) => console.log(message));
+
   broadcastClientCountToWebSocketClients(wsServer.clients.size);
+
   socket.on("close", (socket) => {
     broadcastClientCountToWebSocketClients(wsServer.clients.size);
   });
+
   socket.on("error", (error) => {
     console.error("WebSocket error:", error);
   });
