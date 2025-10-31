@@ -8,6 +8,12 @@ app.use(express.static("dist"));
 app.use(express.json());
 app.listen({ port: 5000 });
 
+const KEYS = {
+  publicKey:
+    "BMJXsOtT2dYG64ggKwp4FQ3ZZaslj0PjXNEi0mG6TwrkZpRb6jeb_bnzxbGWhzxlq5zg1ZGwpCi0vEhOpRHPrZQ",
+  privateKey: "JJcqWDo5_d94jwjDNNdL1IiI5nQGhE4dnYtb-xM9l6s",
+};
+
 const users = [
   {
     username: "daniel",
@@ -168,4 +174,74 @@ function broadcastClientCountToWebSocketClients(clientCount) {
       client.send(JSON.stringify({ activeUsers: clientCount }));
     }
   });
+}
+
+// Web Push Notifications
+const subscriptions = new Map();
+
+app.post("/subscribe", jsonParser, (req, res) => {
+  const subscription = req.body;
+  subscriptions.set(subscription.endpoint, subscription);
+  console.log(
+    `New subscription added. Total subscriptions: ${subscriptions.size}`
+  );
+  res.status(200).send({ message: "Subscribed successfully" });
+});
+
+app.post("/new-version", jsonParser, (req, res) => {
+  const versionMessage =
+    "A new version of the app is available! Refresh to update.";
+  pushToAll(versionMessage, res);
+});
+
+function pushToAll(message, res) {
+  webpush.setVapidDetails(
+    "mailto:dontbugmenow@gmail.com",
+    KEYS.publicKey,
+    KEYS.privateKey
+  );
+
+  if (subscriptions.size === 0) {
+    console.log("No subscriptions available");
+    return res.status(200).send({ message: "No subscribers" });
+  }
+
+  const promises = [];
+
+  subscriptions.forEach((subscription, endpoint) => {
+    const promise = webpush
+      .sendNotification(subscription, JSON.stringify(message))
+      .then(() => {
+        console.log(`Message sent to: ${endpoint.substring(0, 50)}...`);
+      })
+      .catch((err) => {
+        console.error(
+          `Error sending to ${endpoint.substring(0, 50)}...:`,
+          err.statusCode
+        );
+        // Remove invalid subscriptions (expired or unsubscribed)
+        if (err.statusCode === 404 || err.statusCode === 410) {
+          subscriptions.delete(endpoint);
+          console.log(
+            `Removed invalid subscription. Remaining: ${subscriptions.size}`
+          );
+        }
+      });
+
+    promises.push(promise);
+  });
+
+  Promise.all(promises)
+    .then(() => {
+      console.log(
+        `Message '${message}' pushed to ${subscriptions.size} subscribers`
+      );
+      res
+        .status(200)
+        .send({ message: `Sent to ${subscriptions.size} subscribers` });
+    })
+    .catch((err) => {
+      console.error("Error in pushToAll:", err);
+      res.status(500).send({ error: "Failed to send notifications" });
+    });
 }

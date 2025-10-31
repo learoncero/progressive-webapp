@@ -32,7 +32,6 @@ export default function MessageInput({
       onMessageSent();
     } catch (error) {
       console.error("Failed to send message:", error);
-      alert("Failed to send message. Please try again.");
     } finally {
       setIsSending(false);
     }

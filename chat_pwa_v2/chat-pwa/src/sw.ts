@@ -48,5 +48,43 @@ registerRoute(
   })
 );
 
+self.addEventListener("push", function (event) {
+  const data = event.data ? event.data.json() : "no payload";
+
+  // Show notification with custom title for app updates
+  const title = "App Update Available";
+
+  const options = {
+    body: data,
+    requireInteraction: true, // Notification stays until user interacts
+    actions: [
+      {
+        action: "refresh",
+        title: "Refresh Now",
+      },
+      {
+        action: "dismiss",
+        title: "Later",
+      },
+    ],
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Handle notification click
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+
+  if (event.action === "refresh") {
+    // Reload all clients (open tabs)
+    event.waitUntil(
+      self.clients.matchAll({ type: "window" }).then((clients) => {
+        clients.forEach((client) => client.navigate(client.url));
+      })
+    );
+  }
+});
+
 self.skipWaiting();
 clientsClaim();

@@ -3,6 +3,7 @@ import "./App.css";
 import ConversationList from "./ConversationList";
 import Header from "./Header";
 import InstallButton from "./InstallButton";
+import AdminPanel from "./AdminPanel";
 import type { Conversation } from "./types";
 import ConversationService from "./services/ConversationService";
 import UserService from "./services/UserService";
@@ -70,6 +71,7 @@ export default function App() {
           )}
         </div>
         <InstallButton />
+        <AdminPanel />
       </div>
     </div>
   );

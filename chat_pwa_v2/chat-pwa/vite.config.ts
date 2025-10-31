@@ -8,6 +8,8 @@ export default defineConfig({
     proxy: {
       "/conversations": "http://localhost:5000",
       "/users": "http://localhost:5000",
+      "/subscribe": "http://localhost:5000",
+      "/new-version": "http://localhost:5000",
       "/messageEvent": { target: "http://localhost:5000", ws: true },
     },
   },
