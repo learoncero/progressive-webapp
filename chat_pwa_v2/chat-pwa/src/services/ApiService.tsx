@@ -1,10 +1,8 @@
-const API_URL = "http://localhost:5000";
-
 export default class ApiService {
   static async fetch(pathname: string, init?: RequestInit) {
-    // Prepend base URL to relative paths
-    const url = new URL(pathname, API_URL);
-    const response = await fetch(url, init);
+    // Use relative paths in development so Vite's proxy can intercept them
+    // In production, the backend should be served from the same origin
+    const response = await fetch(pathname, init);
 
     if (!response.ok) {
       const errorData = await response

@@ -50,7 +50,7 @@ const conversations = [
   },
   {
     id: 3,
-    participants: ["manuel", "manuel"],
+    participants: ["guenther", "manuel"],
     messages: [
       { from: "guenther", message: "Hello Manuel!" },
       { from: "manuel", message: "Hello Günther!" },
